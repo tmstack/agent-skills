@@ -4,7 +4,6 @@
 import sys
 import json
 import asyncio
-import re
 
 async def fetch_weixin_article(url: str) -> dict:
     """Fetch and parse a WeChat article, return dict with title, author, publish_time, content."""
@@ -56,11 +55,10 @@ async def fetch_weixin_article(url: str) -> dict:
         return {"error": "Could not find article content (#js_content)"}
 
     # Convert to markdown-like text
-    # Remove scripts and styles
     for tag in content_el.find_all(["script", "style"]):
         tag.decompose()
 
-    # Process images - extract src or data-src
+    # Process images
     for img in content_el.find_all("img"):
         src = img.get("data-src") or img.get("src") or ""
         if src:
@@ -85,7 +83,6 @@ async def fetch_weixin_article(url: str) -> dict:
 
     content = "\n\n".join(lines)
 
-    # If structured extraction got nothing, fall back to plain text
     if not content.strip():
         content = content_el.get_text("\n", strip=True)
 
@@ -122,7 +119,7 @@ def format_as_markdown(result: dict) -> str:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: fetch_weixin.py <weixin_url> [--json]", file=sys.stderr)
+        print("Usage: fetch_article.py <weixin_url> [--json]", file=sys.stderr)
         sys.exit(1)
 
     url = sys.argv[1]
